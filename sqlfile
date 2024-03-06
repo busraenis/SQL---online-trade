@@ -1,0 +1,396 @@
+-- Create a database
+CREATE DATABASE ClothingStore;
+
+-- Use this database
+USE ClothingStore;
+
+-- Customers table: Contains customer information
+CREATE TABLE Customers (
+    CustomerID INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(100) NOT NULL,
+    Email VARCHAR(255) UNIQUE NOT NULL,
+    Address VARCHAR(255) NOT NULL
+);
+
+-- SalesConsultants table: Contains information about sales consultants
+CREATE TABLE SalesConsultants (
+    ConsultantID INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(100) NOT NULL    
+);
+
+-- Brands table: Contains information about brands
+CREATE TABLE Brands (
+    BrandID INT PRIMARY KEY AUTO_INCREMENT,
+    BrandName VARCHAR(100) NOT NULL
+);
+
+-- Categories table: Contains product categories
+CREATE TABLE Categories (
+    CategoryID INT PRIMARY KEY AUTO_INCREMENT,
+    CategoryName VARCHAR(100) NOT NULL
+);
+
+-- Suppliers table: Contains information about clothing suppliers
+CREATE TABLE Suppliers (
+    SupplierID INT PRIMARY KEY AUTO_INCREMENT,
+    SupplierName VARCHAR(100) NOT NULL,
+    SupplierAddress VARCHAR(255) NOT NULL
+);
+
+-- Products table: Contains information about products
+CREATE TABLE Products (
+    ProductID INT PRIMARY KEY AUTO_INCREMENT,
+    PName VARCHAR(255) NOT NULL,
+    Price DECIMAL(10, 2) NOT NULL,
+    SupplierID INT,
+    Size VARCHAR(20),
+    Type VARCHAR(50),
+    BrandID INT,
+    CategoryID INT,
+    CONSTRAINT FK_Brand FOREIGN KEY (BrandID) REFERENCES Brands(BrandID),
+    CONSTRAINT FK_Category FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID),
+    CONSTRAINT FK_Supplier FOREIGN KEY (SupplierID) REFERENCES Suppliers(SupplierID)
+);
+
+-- Stores table: Contains information about stores
+CREATE TABLE Stores (
+    StoreID INT PRIMARY KEY AUTO_INCREMENT,
+    StoreName VARCHAR(100) NOT NULL,
+    Location VARCHAR(255) NOT NULL
+);
+
+-- Employees table: Contains information about employees
+CREATE TABLE Employees (
+    EmployeeID INT PRIMARY KEY AUTO_INCREMENT,
+    Name VARCHAR(100) NOT NULL,
+    WorkUnit VARCHAR(50) NOT NULL,
+    Salary DECIMAL(10, 2) DEFAULT 0.00
+);
+
+-- EmployeeWorkPlans table: Contains information about employee work plans
+CREATE TABLE EmployeeWorkPlans (
+    PlanID INT PRIMARY KEY AUTO_INCREMENT,
+    EmployeeID INT,
+    StoreID INT,
+    WorkUnit VARCHAR(50) NOT NULL,
+    FOREIGN KEY (EmployeeID) REFERENCES Employees(EmployeeID),
+    FOREIGN KEY (StoreID) REFERENCES Stores(StoreID)
+);
+
+-- StoreProducts table: Tracks product stocks in each store
+CREATE TABLE StoreProducts (
+    StoreProductID INT PRIMARY KEY AUTO_INCREMENT,
+    StoreID INT,
+    ProductID INT,
+    StockQuantity INT NOT NULL,
+    FOREIGN KEY (StoreID) REFERENCES Stores(StoreID),
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);
+
+-- Orders table: Contains information about orders
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY AUTO_INCREMENT,
+    CustomerID INT,
+    ConsultantID INT,
+    ProductID INT,
+    OrderDate DATE NOT NULL,
+	Quantity INT NOT NULL,
+    CommissionFee DECIMAL(10, 2) NOT NULL,
+    ProductPrice DECIMAL(10, 2) NOT NULL,
+    ShippingAddress VARCHAR(255) NOT NULL,
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID),
+    FOREIGN KEY (ConsultantID) REFERENCES SalesConsultants(ConsultantID),
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);
+
+-- Feedback table: Contains customer feedback
+CREATE TABLE Feedback (
+    FeedbackID INT PRIMARY KEY AUTO_INCREMENT,
+    CustomerID INT,
+    ProductID INT,
+    FeedbackText TEXT NOT NULL,
+    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID),
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);
+
+-- Connecting sales consultant and Employees
+ALTER TABLE Employees
+ADD CONSTRAINT FK_SalesConsultant 
+FOREIGN KEY (EmployeeID) 
+REFERENCES SalesConsultants(ConsultantID);
+
+-- Discounts table: Contains information about product, category, or general discounts
+CREATE TABLE Discounts (
+    DiscountID INT PRIMARY KEY AUTO_INCREMENT,
+    DiscountType VARCHAR(50) NOT NULL,
+    DiscountAmount DECIMAL(10, 2) NOT NULL,
+    ProductID INT,
+    CategoryID INT,
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID),
+    FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID)
+);
+
+-- PriceChanges table: Tracks historical price changes for products
+CREATE TABLE PriceChanges (
+    ChangeID INT PRIMARY KEY AUTO_INCREMENT,
+    ProductID INT,
+    OldPrice DECIMAL(10, 2) NOT NULL,
+    NewPrice DECIMAL(10, 2) NOT NULL,
+    ChangeDate DATE NOT NULL,
+    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+);
+
+-- StoreProducts and Products
+ALTER TABLE StoreProducts
+ADD CONSTRAINT FK_Product 
+FOREIGN KEY (ProductID) 
+REFERENCES Products(ProductID);
+
+
+
+INSERT INTO Customers (Name, Email, Address) VALUES
+('John Doe', 'john.doe@example.com', '123 Main Street'),
+('Jane Smith', 'jane.smith@example.com', '456 Oak Avenue');
+
+INSERT INTO SalesConsultants (Name) VALUES
+('SalesRep1'),
+('SalesRep2');
+
+INSERT INTO Brands (BrandName) VALUES
+('Brand1'),
+('Brand2');
+
+INSERT INTO Categories (CategoryName) VALUES
+('Clothing'),
+('Footwear');
+
+INSERT INTO Suppliers (SupplierName, SupplierAddress) VALUES
+('Supplier1', 'Supplier1 Address'),
+('Supplier2', 'Supplier2 Address');
+
+INSERT INTO Products (PName, Price, SupplierID, Size, Type, BrandID, CategoryID) VALUES
+('Product1', 49.99, 1, 'M', 'Shirt', 1, 1),
+('Product2', 29.99, 2, 'L', 'Jeans', 2, 1);
+
+INSERT INTO Stores (StoreName, Location) VALUES
+('Store1', 'Location1'),
+('Store2', 'Location2');
+
+INSERT INTO Employees (Name, WorkUnit, Salary) VALUES
+('Employee1', 'Sales', 3000.00),
+('Employee2', 'Management', 4000.00);
+
+INSERT INTO EmployeeWorkPlans (EmployeeID, StoreID, WorkUnit) VALUES
+(1, 1, 'Sales'),
+(2, 2, 'Management');
+
+INSERT INTO StoreProducts (StoreID, ProductID, StockQuantity) VALUES
+(1, 1, 100),
+(2, 2, 50);
+
+INSERT INTO Orders (CustomerID, ConsultantID, ProductID, OrderDate, Quantity, CommissionFee, ProductPrice, ShippingAddress) VALUES
+(1, 1, 1, '2024-01-11', 2, 5.00, 49.99, '123 Main Street'),
+(2, 2, 2, '2024-01-12', 1, 3.00, 29.99, '456 Oak Avenue');
+
+INSERT INTO Feedback (CustomerID, ProductID, FeedbackText) VALUES
+(1, 1, 'Great product!'),
+(2, 2, 'Excellent service!');
+
+INSERT INTO Discounts (DiscountType, DiscountAmount, ProductID, CategoryID) VALUES
+('ProductDiscount', 5.00, 1, NULL),
+('CategoryDiscount', 10.00, NULL, 1);
+
+INSERT INTO PriceChanges (ProductID, OldPrice, NewPrice, ChangeDate) VALUES
+(1, 49.99, 45.99, '2023-12-01'),
+(2, 29.99, 27.99, '2023-11-15');
+
+
+
+
+-- products with their associated discount
+CREATE VIEW ProductsWithDiscountsView AS 
+SELECT
+    p.ProductID,
+    p.PName AS ProductName,
+    p.Price,
+    d.DiscountType,
+    d.DiscountAmount
+FROM Products p
+LEFT JOIN Discounts d ON p.ProductID = d.ProductID;
+
+
+-- the total sales for each product category
+CREATE VIEW CategorySalesView AS
+SELECT
+    c.CategoryID,
+    c.CategoryName,
+    SUM(o.Quantity * o.ProductPrice) AS TotalCategorySales
+FROM Categories c
+LEFT JOIN Products p ON c.CategoryID = p.CategoryID
+LEFT JOIN Orders o ON p.ProductID = o.ProductID
+GROUP BY c.CategoryID, c.CategoryName;
+
+
+-- the average price of products for each category
+CREATE VIEW BrandProductSalesView AS
+SELECT
+    b.BrandID,
+    b.BrandName,
+    p.PName AS ProductName,
+    SUM(o.Quantity) AS TotalProductsSold
+FROM Brands b
+INNER JOIN Products p ON b.BrandID = p.BrandID
+LEFT JOIN Orders o ON p.ProductID = o.ProductID
+GROUP BY b.BrandID, b.BrandName, p.PName;
+
+
+
+DELIMITER //
+
+CREATE PROCEDURE CreateOrder(
+    IN p_CustomerID INT,
+    IN p_ProductID INT,
+    IN p_Quantity INT
+)
+BEGIN
+    -- Declare variables
+    DECLARE totalAmount DECIMAL(10, 2);
+    DECLARE shippingFee DECIMAL(10, 2);
+    DECLARE discountAmount DECIMAL(10, 2);
+
+    -- Calculate the Total Amount
+    SELECT Price * p_Quantity INTO totalAmount
+    FROM Products
+    WHERE ProductID = p_ProductID;
+
+    -- Check for Campaign or Discount
+    -- Example discount check (adjust based on your business requirements)
+    SELECT DiscountAmount INTO discountAmount
+    FROM Discounts
+    WHERE ProductID = p_ProductID;
+
+    -- Subtract the discount from the Total Amount
+    SET totalAmount = totalAmount - discountAmount;
+
+    -- Order creation process
+    INSERT INTO Orders (CustomerID, ProductID, Quantity, OrderDate, ProductPrice, DiscountAmount)
+    VALUES (p_CustomerID, p_ProductID, p_Quantity, NOW(), totalAmount, discountAmount);
+END //
+
+DELIMITER ;
+
+
+
+-- calculates the discounted price for a specific product based on its discount
+DELIMITER //
+CREATE PROCEDURE CalculateDiscountedPrice(
+    IN p_ProductID INT
+)
+BEGIN
+    DECLARE discount DECIMAL(10, 2);
+
+    SELECT DiscountAmount
+    INTO discount
+    FROM Discounts
+    WHERE ProductID = p_ProductID
+    LIMIT 1;
+
+    IF discount IS NOT NULL THEN
+        SELECT PName, Price, Price - discount AS DiscountedPrice
+        FROM Products
+        WHERE ProductID = p_ProductID;
+    ELSE
+        SELECT 'No discount available for this product' AS Message;
+    END IF;
+END //
+DELIMITER ;
+
+-- inserting a new order and calculates the commission fee based on a fixed rate
+DELIMITER //
+CREATE PROCEDURE PlaceOrderWithCommission(
+    IN p_CustomerID INT,
+    IN p_ConsultantID INT,
+    IN p_ProductID INT,
+    IN p_Quantity INT,
+    IN p_ProductPrice DECIMAL(10, 2),
+    IN p_ShippingAddress VARCHAR(255)
+)
+BEGIN
+    DECLARE commission_rate DECIMAL(10, 2);
+    SET commission_rate = 0.05; -- 5% commission rate
+
+    INSERT INTO Orders (
+        CustomerID,
+        ConsultantID,
+        ProductID,
+        Quantity,
+        ProductPrice,
+        ShippingAddress,
+        CommissionFee
+    ) VALUES (
+        p_CustomerID,
+        p_ConsultantID,
+        p_ProductID,
+        p_Quantity,
+        p_ProductPrice,
+        p_ShippingAddress,
+        p_Quantity * p_ProductPrice * commission_rate
+    );
+END //
+DELIMITER ;
+
+-- calculating the salary for each employee based on the total sales they have made and a fixed commission rat
+DELIMITER //
+CREATE PROCEDURE CalculateEmployeeSalary()
+BEGIN
+    DECLARE commission_rate DECIMAL(10, 2);
+    SET commission_rate = 0.03; -- 3% commission rate
+
+    UPDATE Employees e
+    SET e.Salary = (
+        SELECT SUM(o.ProductPrice * o.Quantity * commission_rate) AS TotalCommission
+        FROM Orders o
+        WHERE o.ConsultantID = e.EmployeeID
+    );
+END //
+DELIMITER ;
+
+-- updates the stock quantity in the StoreProducts table after each order.
+DELIMITER //
+CREATE TRIGGER UpdateStockOnOrder
+AFTER INSERT ON Orders
+FOR EACH ROW
+BEGIN
+    UPDATE StoreProducts
+    SET StockQuantity = StockQuantity - NEW.Quantity
+    WHERE ProductID = NEW.ProductID;
+END //
+DELIMITER ;
+
+-- preventing orders with quantities exceeding a specified limit.
+DELIMITER //
+CREATE TRIGGER EnforceQuantityLimit
+BEFORE INSERT ON Orders
+FOR EACH ROW
+BEGIN
+    DECLARE max_quantity_limit INT;
+    SET max_quantity_limit = 100; -- Set your maximum quantity limit here
+
+    IF NEW.Quantity > max_quantity_limit THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Order quantity exceeds the maximum limit';
+    END IF;
+END //
+DELIMITER ;
+
+-- automatically updating the product price in the Products table when a discount for the product changes.
+DELIMITER //
+CREATE TRIGGER UpdateProductPriceOnDiscountChange
+AFTER UPDATE ON Discounts
+FOR EACH ROW
+BEGIN
+    UPDATE Products
+    SET Price = Price - OLD.DiscountAmount + NEW.DiscountAmount
+    WHERE ProductID = NEW.ProductID;
+END //
+DELIMITER ;
